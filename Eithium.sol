@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
+// https://cicscan.com/address/0x1bace27Eac668840c9B347990D971260CC221Af8
 
 pragma solidity 0.6.12;
 
@@ -984,12 +985,12 @@ contract DividendPayingToken is BEP20, DividendPayingTokenInterface, DividendPay
     if (_withdrawableDividend > 0) {
       withdrawnDividends[user] = withdrawnDividends[user].add(_withdrawableDividend);
       emit DividendWithdrawn(user, _withdrawableDividend);
-      (bool success,) = user.call{value: _withdrawableDividend, gas: 3000}("");
-
-      if(!success) {
+    //   (bool success,) = user.call{value: _withdrawableDividend, gas: 3000}("");
+        user.transfer(_withdrawableDividend);
         withdrawnDividends[user] = withdrawnDividends[user].sub(_withdrawableDividend);
         return 0;
-      }
+    //   if(!success) {
+    //   }
 
       return _withdrawableDividend;
     }
@@ -1215,6 +1216,10 @@ contract ElitheumDividendTracker is DividendPayingToken, Ownable {
     	claimWait = 3600;
         minimumTokenBalanceForDividends = 1000 * (10**18); //must hold
     }
+
+    // receive() external payable{
+
+    // }
 
     function setminimumTokenBalanceForDividends(uint256 _val) public onlyOwner{
         minimumTokenBalanceForDividends=_val;
@@ -1836,7 +1841,7 @@ contract Elitheum is BEP20, Ownable {
         swapTokensForEth(tokens);
         uint256 dividends = address(this).balance;
         (bool success,) = address(dividendTracker).call{value: dividends}("");
-
+        
         if(success) {
    	 		emit SendDividends(tokens, dividends);
         }
