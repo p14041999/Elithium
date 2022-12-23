@@ -1191,7 +1191,7 @@ contract Ownable is Context {
         _owner = newOwner;
     }
 }
-contract CICRewardTokenDividendTracker is DividendPayingToken, Ownable {
+contract ElitheumDividendTracker is DividendPayingToken, Ownable {
     using SafeMath for uint256;
     using SafeMathInt for int256;
     using IterableMapping for IterableMapping.Map;
@@ -1221,11 +1221,11 @@ contract CICRewardTokenDividendTracker is DividendPayingToken, Ownable {
     }
 
     function _transfer(address, address, uint256) internal override {
-        require(false, "CICRewardToken_Dividend_Tracker: No transfers allowed");
+        require(false, "Elitheum_Dividend_Tracker: No transfers allowed");
     }
 
     function withdrawDividend() public override {
-        require(false, "CICRewardToken_Dividend_Tracker: withdrawDividend disabled. Use the 'claim' function on the main CICRewardToken contract.");
+        require(false, "Elitheum_Dividend_Tracker: withdrawDividend disabled. Use the 'claim' function on the main Elitheum contract.");
     }
 
     function excludeFromDividends(address account) external onlyOwner {
@@ -1239,8 +1239,8 @@ contract CICRewardTokenDividendTracker is DividendPayingToken, Ownable {
     }
 
     function updateClaimWait(uint256 newClaimWait) external onlyOwner {
-        require(newClaimWait >= 3600 && newClaimWait <= 86400, "CICRewardToken_Dividend_Tracker: claimWait must be updated to between 1 and 24 hours");
-        require(newClaimWait != claimWait, "CICRewardToken_Dividend_Tracker: Cannot update claimWait to same value");
+        require(newClaimWait >= 3600 && newClaimWait <= 86400, "Elitheum_Dividend_Tracker: claimWait must be updated to between 1 and 24 hours");
+        require(newClaimWait != claimWait, "Elitheum_Dividend_Tracker: Cannot update claimWait to same value");
         emit ClaimWaitUpdated(newClaimWait, claimWait);
         claimWait = newClaimWait;
     }
@@ -1403,7 +1403,7 @@ contract CICRewardTokenDividendTracker is DividendPayingToken, Ownable {
     	return false;
     }
 }
-contract CICRewardToken is BEP20, Ownable {
+contract Elitheum is BEP20, Ownable {
     using SafeMath for uint256;
 
     IPancakeswapV2Router02 public pancakeswapV2Router;
@@ -1412,12 +1412,12 @@ contract CICRewardToken is BEP20, Ownable {
 
     bool private swapping;
 
-    CICRewardTokenDividendTracker public dividendTracker;
+    ElitheumDividendTracker public dividendTracker;
 
     address public liquidityWallet;
 
-    uint256 public maxSellTransactionAmount = 14000000000 * (10**18);
-    uint256 public swapTokensAtAmount = 1400000000 * (10**18);
+    uint256 public maxSellTransactionAmount = 10000000 * (10**18);
+    uint256 public swapTokensAtAmount = 1000000 * (10**18);
 
     uint256 public immutable CICRewardsFee;
     uint256 public immutable liquidityFee;
@@ -1484,7 +1484,7 @@ contract CICRewardToken is BEP20, Ownable {
         marketingWallet=burnAdd;
 
 
-    	dividendTracker = new CICRewardTokenDividendTracker(_name,_symbol,18);
+    	dividendTracker = new ElitheumDividendTracker(_name,_symbol,18);
 
     	liquidityWallet = 0xf7C562aE3063305fE40077ad78319ccDE4724582;
         //testnet
@@ -1525,11 +1525,11 @@ contract CICRewardToken is BEP20, Ownable {
   	}
    
     function updateDividendTracker(address newAddress) public onlyOwner {
-        require(newAddress != address(dividendTracker), "CICRewardToken: The dividend tracker already has that address");
+        require(newAddress != address(dividendTracker), "Elitheum: The dividend tracker already has that address");
 
-        CICRewardTokenDividendTracker newDividendTracker = CICRewardTokenDividendTracker(payable(newAddress));
+        ElitheumDividendTracker newDividendTracker = ElitheumDividendTracker(payable(newAddress));
 
-        require(newDividendTracker.owner() == address(this), "CICRewardToken: The new dividend tracker must be owned by the CICRewardToken token contract");
+        require(newDividendTracker.owner() == address(this), "Elitheum: The new dividend tracker must be owned by the Elitheum token contract");
 
         newDividendTracker.excludeFromDividends(address(newDividendTracker));
         newDividendTracker.excludeFromDividends(address(this));
@@ -1542,14 +1542,14 @@ contract CICRewardToken is BEP20, Ownable {
     }
 
     function updatePancakeswapV2Router(address newAddress) public onlyOwner {
-        require(newAddress != address(pancakeswapV2Router), "CICRewardToken: The router already has that address");
+        require(newAddress != address(pancakeswapV2Router), "Elitheum: The router already has that address");
         emit UpdatePancakeswapV2Router(newAddress, address(pancakeswapV2Router));
         pancakeswapV2Router = IPancakeswapV2Router02(newAddress);
         dividendTracker.excludeFromDividends(address(pancakeswapV2Router));
     }
 
     function excludeFromFees(address account, bool excluded) public onlyOwner {
-        require(_isExcludedFromFees[account] != excluded, "CICRewardToken: Account is already the value of 'excluded'");
+        require(_isExcludedFromFees[account] != excluded, "Elitheum: Account is already the value of 'excluded'");
         _isExcludedFromFees[account] = excluded;
 
         emit ExcludeFromFees(account, excluded);
@@ -1566,13 +1566,13 @@ contract CICRewardToken is BEP20, Ownable {
     }
 
     function setAutomatedMarketMakerPair(address pair, bool value) public onlyOwner {
-        require(pair != pancakeswapV2Pair, "CICRewardToken: The PancakeSwap pair cannot be removed from automatedMarketMakerPairs");
+        require(pair != pancakeswapV2Pair, "Elitheum: The PancakeSwap pair cannot be removed from automatedMarketMakerPairs");
 
         _setAutomatedMarketMakerPair(pair, value);
     }
 
     function _setAutomatedMarketMakerPair(address pair, bool value) private {
-        require(automatedMarketMakerPairs[pair] != value, "CICRewardToken: Automated market maker pair is already set to that value");
+        require(automatedMarketMakerPairs[pair] != value, "Elitheum: Automated market maker pair is already set to that value");
         automatedMarketMakerPairs[pair] = value;
 
         if(value) {
@@ -1584,15 +1584,15 @@ contract CICRewardToken is BEP20, Ownable {
 
 
     function updateLiquidityWallet(address newLiquidityWallet) public onlyOwner {
-        require(newLiquidityWallet != liquidityWallet, "CICRewardToken: The liquidity wallet is already this address");
+        require(newLiquidityWallet != liquidityWallet, "Elitheum: The liquidity wallet is already this address");
         excludeFromFees(newLiquidityWallet, true);
         emit LiquidityWalletUpdated(newLiquidityWallet, liquidityWallet);
         liquidityWallet = newLiquidityWallet;
     }
 
     function updateGasForProcessing(uint256 newValue) public onlyOwner {
-        require(newValue >= 200000 && newValue <= 500000, "CICRewardToken: gasForProcessing must be between 200,000 and 500,000");
-        require(newValue != gasForProcessing, "CICRewardToken: Cannot update gasForProcessing to same value");
+        require(newValue >= 200000 && newValue <= 500000, "Elitheum: gasForProcessing must be between 200,000 and 500,000");
+        require(newValue != gasForProcessing, "Elitheum: Cannot update gasForProcessing to same value");
         emit GasForProcessingUpdated(newValue, gasForProcessing);
         gasForProcessing = newValue;
     }
